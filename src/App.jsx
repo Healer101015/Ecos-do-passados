@@ -2,144 +2,18 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Midi } from '@tonejs/midi';
 import './App.css';
 
-// --- ENGINE DE ÁUDIO ---
-let audioCtx;
-let masterGain;
-let activeOscs = [];
+// Importando os serviços e constantes da arquitetura modular
+import { initAudio, playTone, stopAllScheduledAudio, resetAudioVolume, fadeOutMaster, getAudioContext } from './services/audioEngine';
+import { REQUIRED_NOTES, FALL_DURATION, TEMPO_MULTIPLIER, MAX_AUTO_PLAY_SECONDS, STORIES, FALLBACKS, PIANO_KEYS, PHASE_TITLES, PHASE_SUBTITLES } from './constants/gameData';
+import Keyboard from './components/Keyboard';
 
-const initAudio = () => {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = audioCtx.createGain();
-    masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
-    masterGain.connect(audioCtx.destination);
-  }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-};
-
-const fadeOutMaster = (duration) => {
-  if (!masterGain) return;
-  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
-  masterGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-};
-
-const resetAudioVolume = () => {
-  if (masterGain && audioCtx) {
-    masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-    masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
-  }
-};
-
-const stopAllScheduledAudio = () => {
-  activeOscs.forEach(osc => {
-    try {
-      osc.stop();
-      osc.disconnect();
-    } catch (e) { }
-  });
-  activeOscs = [];
-};
-
-// NOVA FUNÇÃO: Limpa qualquer luz que tenha ficado presa nas teclas
 const clearActiveKeys = () => {
   document.querySelectorAll('.min-key').forEach(key => {
     key.classList.remove('lit', 'error');
   });
 };
 
-const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
-
-const playTone = (midiNumber, type = 'sine', startTime = 0, duration = 0.5, volume = 0.2) => {
-  if (!audioCtx) return;
-  const time = startTime === 0 ? audioCtx.currentTime : startTime;
-  const freq = midiToFreq(midiNumber);
-
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, time);
-
-  gain.gain.setValueAtTime(0, time);
-  gain.gain.linearRampToValueAtTime(volume, time + 0.05);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + duration + 1.5);
-
-  osc.connect(gain);
-  gain.connect(masterGain);
-  osc.start(time);
-
-  const stopTime = time + duration + 2;
-  try {
-    osc.stop(stopTime);
-  } catch (e) { }
-
-  activeOscs.push(osc);
-  osc.onended = () => {
-    const idx = activeOscs.indexOf(osc);
-    if (idx > -1) activeOscs.splice(idx, 1);
-  };
-};
-
-// --- CONFIGURAÇÕES ---
-const REQUIRED_NOTES = 10;
-const FALL_DURATION = 1.8;
-const TEMPO_MULTIPLIER = 1.2;
-const MAX_AUTO_PLAY_SECONDS = 60;
-
-const PIANO_KEYS = [
-  { name: 'C', keyBind: 'a', pos: 10 }, { name: 'C#', keyBind: 'w', pos: 18 },
-  { name: 'D', keyBind: 's', pos: 26 }, { name: 'D#', keyBind: 'e', pos: 34 },
-  { name: 'E', keyBind: 'd', pos: 42 }, { name: 'F', keyBind: 'f', pos: 50 },
-  { name: 'F#', keyBind: 't', pos: 58 }, { name: 'G', keyBind: 'g', pos: 66 },
-  { name: 'G#', keyBind: 'y', pos: 74 }, { name: 'A', keyBind: 'h', pos: 82 },
-  { name: 'A#', keyBind: 'u', pos: 90 }, { name: 'B', keyBind: 'j', pos: 98 }
-];
-
-const STORIES = {
-  1: [
-    "Há coisas que se desfazem sem ruído, como poeira atravessada por luz.",
-    "O ar muda antes que os olhos percebam.",
-    "Por um instante, tudo parece suspenso entre presença e desaparecimento.",
-    "O silêncio não interrompe. Ele molda.",
-    "E o que resta vibra, invisível, dentro do espaço."
-  ],
-  2: [
-    "As superfícies guardam marcas que só a luz revela.",
-    "Fendas douradas atravessam a matéria como memórias acesas.",
-    "Nada aqui pede para voltar ao que era.",
-    "A fratura também compõe.",
-    "E cada linha quebrada aprende a refletir de outro modo."
-  ],
-  3: [
-    "A água toca sem pedir licença.",
-    "Escorre entre os dedos, contorna a forma, leva consigo o excesso.",
-    "Não há como deter o que nasceu para seguir.",
-    "O fluxo conhece caminhos que o corpo ainda não entende.",
-    "Resta abrir as mãos e ouvir a passagem."
-  ],
-  4: [
-    "A névoa ocupa o lugar das certezas.",
-    "Os contornos respiram devagar, quase desaparecendo diante do olhar.",
-    "Há um frio delicado no que ainda não se revela.",
-    "Mas até a sombra cansa de esconder.",
-    "E pouco a pouco, o espaço volta a ter profundidade."
-  ],
-  5: [
-    "Depois de tudo, uma claridade vazia se abre.",
-    "Não como ausência, mas como campo.",
-    "Uma superfície limpa, pronta para receber outro gesto, outra luz, outro som.",
-    "Nada termina de fato dentro da experiência.",
-    "A última nota apenas se dissolve no branco."
-  ]
-};
-
-const FALLBACKS = {
-  1: Array.from({ length: 120 }).map((_, i) => ({ pitch: ['C', 'E', 'G', 'B'][i % 4], midi: 60 + (i % 4) * 2, time: i * 0.5, duration: 0.5 })),
-  2: Array.from({ length: 120 }).map((_, i) => ({ pitch: ['D', 'F', 'A', 'C'][i % 4], midi: 62 + (i % 4) * 2, time: i * 0.5, duration: 0.5 })),
-  3: Array.from({ length: 120 }).map((_, i) => ({ pitch: ['E', 'G', 'B', 'D'][i % 4], midi: 64 + (i % 4) * 2, time: i * 0.5, duration: 0.8 })),
-  4: Array.from({ length: 120 }).map((_, i) => ({ pitch: ['A', 'C', 'E', 'A'][i % 4], midi: 57 + (i % 4) * 3, time: i * 0.6, duration: 0.6 })),
-  5: Array.from({ length: 120 }).map((_, i) => ({ pitch: ['C', 'F', 'A', 'E'][i % 4], midi: 65 + (i % 4) * 3, time: i * 0.6, duration: 1.0 }))
-};
-
+// EXPORT DEFAULT CORRIGIDO E DECLARADO AQUI
 export default function App() {
   const [phase, setPhase] = useState(1);
   const [mode, setMode] = useState('LOADING');
@@ -150,7 +24,6 @@ export default function App() {
 
   const notesDataRef = useRef([]);
   const noteDOMRefs = useRef([]);
-  const progressRef = useRef(null);
   const rafRef = useRef(null);
   const timeouts = useRef([]);
 
@@ -193,7 +66,7 @@ export default function App() {
   const handleStartExperience = () => {
     initAudio();
     stopAllScheduledAudio();
-    clearActiveKeys(); // Garante que as teclas comecem apagadas
+    clearActiveKeys();
     resetAudioVolume();
     isReplayRef.current = false;
     playTone(60, 'sine', 0, 1.5, 0.4);
@@ -208,7 +81,7 @@ export default function App() {
   const handleReplayPhase = (targetPhaseId) => {
     initAudio();
     stopAllScheduledAudio();
-    clearActiveKeys(); // Limpa resquícios da fase anterior
+    clearActiveKeys();
     resetAudioVolume();
     playTone(64 + targetPhaseId, 'sine', 0, 1.0, 0.3);
 
@@ -227,7 +100,7 @@ export default function App() {
   const stopReplayManually = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     fadeOutMaster(1);
-    clearActiveKeys(); // Desliga todas as luzes imediatamente
+    clearActiveKeys();
     setTimeout(() => {
       stopAllScheduledAudio();
       resetAudioVolume();
@@ -291,8 +164,7 @@ export default function App() {
         setPhase(prev => prev + 1);
         setUserProgress(0);
         setStoryIndex(-1);
-        clearActiveKeys(); // Garante o teclado limpo na transição
-        if (progressRef.current) progressRef.current.style.width = '0%';
+        clearActiveKeys();
         setMode('MANUAL');
         return;
       }
@@ -313,7 +185,7 @@ export default function App() {
 
   const startCinematicEngine = (targetPhaseId) => {
     initAudio();
-    clearActiveKeys(); // Mais uma trava de segurança
+    clearActiveKeys();
     const cinematicNotes = getCinematicNotes(targetPhaseId);
 
     const startMidiTime = cinematicNotes.length > 0 ? cinematicNotes[0].time * TEMPO_MULTIPLIER : 0;
@@ -329,6 +201,7 @@ export default function App() {
     setMode('CINEMATIC');
 
     setTimeout(() => {
+      const audioCtx = getAudioContext();
       const now = audioCtx.currentTime;
       const baseStart = now + FALL_DURATION;
 
@@ -370,6 +243,7 @@ export default function App() {
             el.style.opacity = 0;
             el.style.transform = `translate3d(-50%, -500px, 0)`;
           } else if (currentTopY < hitY) {
+            // Colisão matemática exata para a luz não vazar
             if (timeUntilHit <= 0) {
               currentBottomY = hitY;
               currentTopY = hitY - ((note.duration + timeUntilHit) * speedPxPerSec);
@@ -411,7 +285,7 @@ export default function App() {
           rafRef.current = requestAnimationFrame(renderLoop);
         } else {
           setStoryIndex(-1);
-          clearActiveKeys(); // Limpa todas as teclas perfeitamente no final da música
+          clearActiveKeys();
 
           if (isReplayRef.current) {
             fadeOutMaster(8);
@@ -429,23 +303,14 @@ export default function App() {
     }, 150);
   };
 
-  // --- CORREÇÃO DO TEMA ---
+  // --- TEMA RESTAURADO: Mantendo as cores idênticas ao seu código original ---
   const getThemeClass = () => {
     if (mode === 'INTRO' || mode === 'STARTING') return 'theme-intro';
     if (phase === 1) return 'theme-echo';
     if (phase === 2) return 'theme-kintsugi';
     if (phase === 3) return 'theme-crimson';
     if (phase === 4) return 'theme-eclipse';
-    return 'theme-horizon'; // Voltou para o tema branco da fase 5
-  };
-
-  const phaseTitles = {
-    1: 'Ato I: O Eco', 2: 'Ato II: O Ouro', 3: 'Ato III: A Maré', 4: 'Ato IV: A Travessia', 5: 'Ato V: A Tela em Branco'
-  };
-  const phaseSubtitles = {
-    1: 'Sincronize as notas para revelar a memória.', 2: 'Há beleza no que foi quebrado. Continue tocando.',
-    3: 'O final de um ciclo. Liberte o som.', 4: 'O escuro antes do amanhecer. Siga em frente.',
-    5: 'O último compasso. Escreva a sua saída.'
+    return 'theme-horizon';
   };
 
   if (mode === 'LOADING') {
@@ -476,7 +341,7 @@ export default function App() {
               <span className="dot-sep">•</span>
               <span>ACELERAÇÃO GRÁFICA</span>
               <span className="dot-sep">•</span>
-              <span>DESATIVE SUA EXTENSÃO KK</span>
+              <span>DESATIVE SUAS EXTENSÕES DE VIDEO</span>
               <span className="dot-sep">•</span>
               <span>LUZES APAGADAS</span>
             </div>
@@ -510,8 +375,8 @@ export default function App() {
       <div className="poetry-canvas">
         {(mode === 'MANUAL' || mode === 'WAITING') && (
           <div className={`intro-block emerge-water ${mode === 'WAITING' ? 'dissolve-out' : ''}`}>
-            <h1 className="title liquid-text">{phaseTitles[phase]}</h1>
-            <p className="subtitle">{phaseSubtitles[phase]}</p>
+            <h1 className="title liquid-text">{PHASE_TITLES[phase]}</h1>
+            <p className="subtitle">{PHASE_SUBTITLES[phase]}</p>
 
             <div className="note-constellation">
               {sequenceToPlay.map((noteObj, idx) => {
@@ -572,7 +437,7 @@ export default function App() {
                   {[1, 2, 3, 4, 5].map((p) => (
                     <span key={p} className="track-item liquid-hover" onClick={() => handleReplayPhase(p)}>
                       <span className="track-number">{['I', 'II', 'III', 'IV', 'V'][p - 1]}</span>
-                      <span className="track-name">{phaseTitles[p].split(': ')[1]}</span>
+                      <span className="track-name">{PHASE_TITLES[p].split(': ')[1]}</span>
                       <span className="duration-hint">[Tocar]</span>
                       <div className="liquid-splash"></div>
                     </span>
@@ -597,25 +462,7 @@ export default function App() {
         ))}
       </div>
 
-      <div className={`minimal-keyboard ${(mode === 'END' || mode === 'TRANSITION' || mode === 'INTRO' || mode === 'STARTING') ? 'hidden' : ''} ${mode === 'WAITING' ? 'keyboard-fading' : ''}`}>
-        {PIANO_KEYS.map((key) => (
-          <div
-            id={`key-${key.name}`}
-            key={key.name}
-            className="min-key"
-            style={{ left: `${key.pos}%` }}
-            onMouseDown={() => handlePlay(key.name)}
-          >
-            <div className="glow-bar"></div>
-            <div className="key-labels">
-              <span className="note-name">{key.name}</span>
-              <span className="bind-name">[{key.keyBind.toUpperCase()}]</span>
-            </div>
-          </div>
-        ))}
-        <div className="baseline"></div>
-        <div id="shockwave-container"></div>
-      </div>
+      <Keyboard mode={mode} handlePlay={handlePlay} />
 
     </div>
   );
