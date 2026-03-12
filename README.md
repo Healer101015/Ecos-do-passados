@@ -28,3 +28,6 @@ Para evitar um "Monolito" no componente principal, a aplicação segue uma arqui
 1. Clone este repositório:
    ```bash
    git clone [https://github.com/seu-usuario/ecos-do-passado.git](https://github.com/seu-usuario/ecos-do-passado.git)
+   cd ecos-do-passado
+   npm install
+   npm run dev
