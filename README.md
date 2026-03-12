@@ -25,6 +25,8 @@ Para evitar um "Monolito" no componente principal, a aplicação segue uma arqui
 
 ## 🎮 Como Executar Localmente
 
+ECOS DO PASSADO
+================
 
  CATEGORIA: INSTALAÇÃO DO PROJETO
 
@@ -52,4 +54,3 @@ CATEGORIA: OBSERVAÇÃO
 
 - Certifique-se de ter o Node.js e o npm instalados na sua máquina.
 - Substitua "seu-usuario" pelo nome correto do GitHub, se necessário.
-
