@@ -1,16 +1,30 @@
-# React + Vite
+# Ecos do Passado 🎵✨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Uma experiência interativa e imersiva baseada na web onde música, poesia e luz se encontram. Sincronize as notas em queda com o teclado para revelar memórias e trilhas sonoras.
 
-Currently, two official plugins are available:
+## 🚀 Visão Geral do Projeto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+O **Ecos do Passado** não é apenas um jogo rítmico, mas uma demonstração de como integrar processamento de áudio nativo do navegador com interfaces reativas modernas. O projeto foi desenhado com foco absoluto em **Clean Code** e **Separação de Responsabilidades (SoC)**, garantindo um código limpo, escalável e de fácil manutenção.
 
-## React Compiler
+## 🏗️ Arquitetura e Padrões Utilizados
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Para evitar um "Monolito" no componente principal, a aplicação segue uma arquitetura modularizada:
 
-## Expanding the ESLint configuration
+* 📂 **`src/services/audioEngine.js`**: Isola completamente a **Web Audio API**. O React apenas aciona os métodos, sem precisar entender os cálculos de frequência ou criação de osciladores.
+* 📂 **`src/constants/gameData.js`**: Extração de todos os dados estáticos (textos de história, posições das teclas, configurações de tempo e fallbacks MIDI). 
+* 📂 **`src/components/`**: Utilização de *Dumb Components* (ex: `Keyboard.jsx`) que recebem `props` e apenas se preocupam em renderizar a UI.
+* ⚙️ **Game Loop Customizado**: Uso intenso de `requestAnimationFrame` dentro de `useRef` para calcular colisões perfeitas e interpolação de frames, garantindo que as animações de luz não "vazem" e sejam executadas a 60FPS.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tecnologias e Bibliotecas
+
+* **React** (Vite)
+* **JavaScript (ES6+)**
+* **Web Audio API** (Sintetizador gerado matematicamente via código)
+* **@tonejs/midi** (Para decodificação das trilhas)
+* **CSS3 Avançado** (Animações, transições suaves, variáveis dinâmicas e design responsivo)
+
+## 🎮 Como Executar Localmente
+
+1. Clone este repositório:
+   ```bash
+   git clone [https://github.com/seu-usuario/ecos-do-passado.git](https://github.com/seu-usuario/ecos-do-passado.git)
