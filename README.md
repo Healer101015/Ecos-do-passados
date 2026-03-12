@@ -25,6 +25,31 @@ Para evitar um "Monolito" no componente principal, a aplicação segue uma arqui
 
 ## 🎮 Como Executar Localmente
 
+
+ CATEGORIA: INSTALAÇÃO DO PROJETO
+
 1. Clone este repositório:
-   ```bash
-   git clone [https://github.com/seu-usuario/ecos-do-passado.git](https://github.com/seu-usuario/ecos-do-passado.git)
+```bash
+git clone https://github.com/seu-usuario/ecos-do-passado.git
+```
+
+2. Entre na pasta do projeto:
+```bash
+cd ecos-do-passado
+```
+
+3. Instale as dependências:
+```bash
+npm install
+```
+
+4. Inicie o projeto:
+```bash
+npm run dev
+```
+
+CATEGORIA: OBSERVAÇÃO
+
+- Certifique-se de ter o Node.js e o npm instalados na sua máquina.
+- Substitua "seu-usuario" pelo nome correto do GitHub, se necessário.
+
