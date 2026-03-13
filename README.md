@@ -4,7 +4,7 @@ Uma experiência interativa e imersiva baseada na web onde música, poesia e luz
 
 ## 🚀 Visão Geral do Projeto
 
-O **Ecos do Passado** não é apenas um jogo rítmico, mas uma demonstração de como integrar processamento de áudio nativo do navegador com interfaces reativas modernas. O projeto foi desenhado com foco absoluto em **Clean Code** e **Separação de Responsabilidades (SoC)**, garantindo um código limpo, escalável e de fácil manutenção.
+O **Eco da sinfonia** não é apenas um jogo rítmico, mas uma demonstração de como integrar processamento de áudio nativo do navegador com interfaces reativas modernas. O projeto foi desenhado com foco absoluto em **Clean Code** e **Separação de Responsabilidades (SoC)**, garantindo um código limpo, escalável e de fácil manutenção.
 
 ## 🏗️ Arquitetura e Padrões Utilizados
 
