@@ -32,12 +32,12 @@ ECOS DO PASSADO
 
 1. Clone este repositório:
 ```bash
-git clone https://github.com/seu-usuario/ecos-do-passado.git
+git clone https://github.com/seu-usuario/eco-da-sinfonia.git
 ```
 
 2. Entre na pasta do projeto:
 ```bash
-cd ecos-do-passado
+cd ecos-da-sinfonia
 ```
 
 3. Instale as dependências:
