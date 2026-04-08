@@ -2,7 +2,7 @@
 
 
 <div align="center">
-  <img src="./assets/projeto.gif" alt="Ecos da Sinfonia" />
+  <img src="src/assets/projeto.gif" alt="Ecos da Sinfonia" />
 </div>
 
 Uma experiência interativa e imersiva baseada na web onde música, poesia e luz se encontram. Sincronize as notas em queda com o teclado para revelar memórias e trilhas sonoras.
